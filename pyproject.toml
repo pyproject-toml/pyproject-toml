@@ -1,8 +1,9 @@
 [project]
 name = "pyproject-toml"
-version = "0.0.1"
+version = "0.0.2"
 description = "Project intend to implement PEP 517, 518, 621, 631 and so on."
-license = "MIT"
+readme = "README.rst"
+license = { text = "MIT" }
 classifiers = [
     "Development Status :: 1 - Planning",
     "License :: OSI Approved :: MIT License",

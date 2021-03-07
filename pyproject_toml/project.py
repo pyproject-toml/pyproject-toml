@@ -61,15 +61,30 @@ __schema__ = {
                 },
             },
         },
-        "keywords": {"type": "array", "items": {"type": "string"}},
-        "classifiers": {"type": "array", "items": {"type": "string"}},
+        "keywords": {
+            "$ref": "http://json-schema.org/draft-07/schema#/definitions/stringArray"
+        },
+        "classifiers": {
+            "$ref": "http://json-schema.org/draft-07/schema#/definitions/stringArray"
+        },
         "urls": {"type": "object"},
         "scripts": {"type": "object"},
         "gui-scripts": {"type": "object"},
         "entry-points": {"type": "object"},
-        "dependencies": {"type": "array", "items": {"type": "string"}},
-        "optional-dependencies": {"type": "array", "items": {"type": "string"}},
-        "dynamic": {"type": "array", "items": {"type": "string"}},
+        "dependencies": {
+            "$ref": "http://json-schema.org/draft-07/schema#/definitions/stringArray"
+        },
+        "optional-dependencies": {
+            "type": "object",
+            "patternProperties": {
+                ".+": {
+                    "$ref": "http://json-schema.org/draft-07/schema#/definitions/stringArray"
+                }
+            },
+        },
+        "dynamic": {
+            "$ref": "http://json-schema.org/draft-07/schema#/definitions/stringArray"
+        },
     },
     "required": ["name", "version"],
 }

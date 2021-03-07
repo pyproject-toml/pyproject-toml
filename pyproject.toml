@@ -1,6 +1,6 @@
 [project]
 name = "pyproject-toml"
-version = "0.0.2"
+version = "0.0.3a1"
 description = "Project intend to implement PEP 517, 518, 621, 631 and so on."
 readme = "README.rst"
 license = { text = "MIT" }
@@ -8,6 +8,15 @@ classifiers = [
     "Development Status :: 1 - Planning",
     "License :: OSI Approved :: MIT License",
 ]
+dependencies = [
+    "setuptools >= 42",
+    "wheel",
+    "jsonschema",
+]
+
+[tool.pyproject-toml]
+packages = ["pyproject_toml", "pyproject_toml.build_system", "pyproject_toml.tool"]
 
 [build-system]
 requires = ["setuptools>=42", "wheel", "toml"]
+backend = "pyproject_toml.build_system.backend"

@@ -5,7 +5,7 @@ __schema__ = {
         "requires": {
             "$ref": "http://json-schema.org/draft-07/schema#/definitions/stringArray"
         },
-        "backend": {
+        "build-backend": {
             "type": "string",
             "pattern": r"^(\w[\w\d]*)(\.\w[\w\d]*)*(:(\w[\w\d]*)(\.\w[\w\d]*))?$",
         },

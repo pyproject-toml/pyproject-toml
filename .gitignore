@@ -5,6 +5,7 @@ __pycache__/
 
 # Virtualenv
 .venv/
+.python-version
 
 # Distribution / packaging
 build/

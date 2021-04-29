@@ -28,7 +28,12 @@ README_CONTENT_TYPES = {
 
 def format_author(author: dict[Literal["name", "email"], str]):
     if "email" in author:
-        return f"{author['name']} <{author['email']}>" if "name" in author else author["email"], "_email"
+        return (
+            f"{author['name']} <{author['email']}>"
+            if "name" in author
+            else author["email"],
+            "_email",
+        )
     elif "name" in author:
         return author["name"], ""
     else:
@@ -54,7 +59,9 @@ def setup(**attrs):
             attrs["long_description"] = readme["text"]
         if isinstance(readme, Path):
             try:
-                attrs["long_description_content_type"] = README_CONTENT_TYPES[readme.suffix]
+                attrs["long_description_content_type"] = README_CONTENT_TYPES[
+                    readme.suffix
+                ]
             except KeyError:
                 raise TypeError(f"Content type of {readme} is not supported")
             attrs["long_description"] = readme.read_text(encoding="utf-8")
@@ -86,5 +93,5 @@ def setup(**attrs):
         attrs[k] = ",".join(v)
 
     attrs["install_requires"] = attrs.pop("dependencies", None)
-    
+
     setuptools.setup(**attrs)

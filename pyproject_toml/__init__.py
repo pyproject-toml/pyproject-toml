@@ -84,16 +84,27 @@ def setup_decorator(origin_setup):
             elif "file" in license:
                 attrs["license_file"] = license["file"]
 
-        authors = attrs.pop("authors", [])
-        maintainers = attrs.pop("maintainers", [])
-        author_dict = defaultdict(list)
-        for type_, people in ("author", authors), ("maintainer", maintainers):
+        authors = defaultdict(list)
+        for type_, people in ("author", attrs.pop("authors", [])), (
+            "maintainer",
+            attrs.pop("maintainers", []),
+        ):
             for person in people:
                 value, postfix = format_author(person)
-                author_dict[type_ + postfix].append(value)
+                authors[type_ + postfix].append(value)
 
-        for k, v in author_dict.items():
+        for k, v in authors.items():
             attrs[k] = ",".join(v)
+
+        if "urls" in attrs:
+            urls = attrs.pop("urls")
+            attrs["url"] = urls.pop(
+                "home-page", urls.pop("homepage", urls.pop("url", None))
+            )
+            attrs["download_url"] = urls.pop(
+                "download-url", urls.pop("download_url", urls.pop("download", None))
+            )
+            attrs["project_urls"] = urls
 
         attrs["install_requires"] = attrs.pop("dependencies", None)
 

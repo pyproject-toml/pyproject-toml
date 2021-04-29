@@ -1,4 +1,6 @@
+from collections import defaultdict
 from pathlib import Path
+from typing import Literal
 
 import setuptools
 import toml
@@ -22,6 +24,15 @@ README_CONTENT_TYPES = {
     ".txt": "text/plain",
     "": "text/plain",
 }
+
+
+def format_author(author: dict[Literal["name", "email"], str]):
+    if "email" in author:
+        return f"{author['name']} <{author['email']}>" if "name" in author else author["email"], "_email"
+    elif "name" in author:
+        return author["name"], ""
+    else:
+        raise ValueError("")
 
 
 def setup(**attrs):
@@ -62,6 +73,17 @@ def setup(**attrs):
             attrs["license"] = license["text"]
         elif "file" in license:
             attrs["license_file"] = license["file"]
+
+    authors = attrs.pop("authors", [])
+    maintainers = attrs.pop("maintainers", [])
+    author_dict = defaultdict(list)
+    for type_, people in ("author", authors), ("maintainer", maintainers):
+        for person in people:
+            value, postfix = format_author(person)
+            author_dict[type_ + postfix].append(value)
+
+    for k, v in author_dict.items():
+        attrs[k] = ",".join(v)
 
     attrs["install_requires"] = attrs.pop("dependencies", None)
     

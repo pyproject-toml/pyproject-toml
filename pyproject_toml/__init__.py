@@ -51,6 +51,8 @@ def setup_decorator(origin_setup):
                 attrs[k] = v
             for k, v in pyproject.get("tool", {}).get("pyproject-toml", {}).items():
                 attrs[k] = v
+        else:
+            return origin_setup(**attrs)
 
         if "readme" in attrs:
             readme = attrs.pop("readme")
@@ -73,16 +75,16 @@ def setup_decorator(origin_setup):
             attrs["python_requires"] = attrs.pop("requires-python")
 
         if "license" in attrs:
-            license = attrs.pop("license")
-            if isinstance(license, str):
+            license_ = attrs.pop("license")
+            if isinstance(license_, str):
                 raise NotImplementedError(
                     "No PEP supports SPDX at 2021-03-07 when I write, see "
                     "https://www.python.org/dev/peps/pep-0621/#id88"
                 )
-            if "text" in license:
-                attrs["license"] = license["text"]
-            elif "file" in license:
-                attrs["license_file"] = license["file"]
+            if "text" in license_:
+                attrs["license"] = license_["text"]
+            elif "file" in license_:
+                attrs["license_file"] = license_["file"]
 
         authors = defaultdict(list)
         for type_, people in ("author", attrs.pop("authors", [])), (

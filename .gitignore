@@ -11,3 +11,6 @@ __pycache__/
 build/
 dist/
 pyproject_toml.egg-info/
+
+# coverage
+.coverage*

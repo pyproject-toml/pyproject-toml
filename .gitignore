@@ -14,3 +14,6 @@ pyproject_toml.egg-info/
 
 # coverage
 .coverage*
+
+# tox
+.tox/

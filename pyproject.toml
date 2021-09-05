@@ -1,11 +1,11 @@
 [build-system]
-requires = ["pyproject-toml>=0.0.6"]
+requires = ["pyproject-toml>=0.0.10"]
 build-backend = "pyproject_toml.build_system.build_backend"
 backend-path = ["."]
 
 [project]
 name = "pyproject-toml"
-version = "0.0.10"
+version = "0.0.11"
 description = "Project intend to implement PEP 517, 518, 621, 631 and so on."
 readme = "README.rst"
 authors = [{ name = "Tang Ziya", email = "tcztzy@hotmail.com" }]
@@ -15,10 +15,30 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
 ]
-dependencies = ["setuptools>=42", "wheel", "toml", "jsonschema"]
+dependencies = [
+    "setuptools >= 42",
+    "wheel",
+    "toml",
+    "jsonschema",
+    "typing-extensions; python_version < '3.8'",
+]
 
 [project.urls]
 homepage = "https://github.com/pyproject-toml/pyproject-toml"
 
 [tool.pyproject-toml]
 packages = ["pyproject_toml", "pyproject_toml.build_system", "pyproject_toml.tool"]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{36,37,38,39,310}
+isolated_build = True
+[testenv]
+deps =
+    jaraco.path
+    pytest
+    pytest-cov
+    setuptools
+commands = pytest
+"""

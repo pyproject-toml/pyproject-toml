@@ -1,13 +1,16 @@
 from collections import defaultdict
-from pathlib import Path
-from typing import Literal
 from functools import wraps
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import setuptools
 import toml
 from jsonschema import validate
 
 from . import build_system, project, tool
+
+if TYPE_CHECKING:
+    from typing import Dict, Literal
 
 SCHEMA = {
     "type": "object",
@@ -27,10 +30,10 @@ README_CONTENT_TYPES = {
 }
 
 
-def format_author(author: dict[Literal["name", "email"], str]):
+def format_author(author: "Dict[Literal['name', 'email'], str]"):
     if "email" in author:
         return (
-            f"{author['name']} <{author['email']}>"
+            "{name} <{email}>".format(**author)
             if "name" in author
             else author["email"],
             "_email",
@@ -44,7 +47,8 @@ def format_author(author: dict[Literal["name", "email"], str]):
 def setup_decorator(origin_setup):
     @wraps(origin_setup)
     def new_setup(**attrs):
-        if (pyproject_toml := Path("pyproject.toml")).exists():
+        pyproject_toml = Path("pyproject.toml")
+        if pyproject_toml.exists():
             pyproject = toml.loads(pyproject_toml.read_text(encoding="utf-8"))
             validate(pyproject, SCHEMA)
             for k, v in pyproject.get("project", {}).items():
@@ -68,7 +72,7 @@ def setup_decorator(origin_setup):
                         readme.suffix
                     ]
                 except KeyError:
-                    raise TypeError(f"Content type of {readme} is not supported")
+                    raise TypeError("Content type of {} is not supported".format(readme))
                 attrs["long_description"] = readme.read_text(encoding="utf-8")
 
         if "requires-python" in attrs:

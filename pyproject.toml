@@ -1,5 +1,5 @@
 [build-system]
-requires = ["pyproject-toml>=0.1.0"]
+requires = ["pyproject-toml>=0.1.0", "pydantic-settings>=2.6.1", "spdx-tools>=0.8.3", "packaging-classifiers>=1.0.0rc5"]
 build-backend = "pyproject_toml.build_system.build_backend"
 backend-path = ["."]
 
@@ -11,7 +11,7 @@ readme = "README.rst"
 authors = [{ name = "Tang Ziya", email = "tcztzy@hotmail.com" }]
 license = { text = "MIT" }
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
 ]
@@ -22,6 +22,9 @@ dependencies = [
     "tomli>=2.1.0; python_version < '3.11'",
     "pydantic>=2.9.2",
     "packaging>=24.2",
+    "packaging-classifiers>=1.0.0rc5",
+    "pydantic-settings>=2.6.1",
+    "spdx-tools>=0.8.3",
 ]
 
 [project.optional-dependencies]
@@ -45,15 +48,15 @@ line-length = 88
 extend-select = ["I"]
 
 [tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist = py{39,310,311,312,313}
-isolated_build = True
-[testenv]
-deps =
-    jaraco.path
-    pytest
-    pytest-cov
-    setuptools
-commands = pytest
-"""
+requires = ["tox>=4"]
+env_list = ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+[tool.tox.env_run_base]
+description = "Run test under {base_python}"
+deps = [
+    "jaraco.path",
+    "pytest",
+    "pytest-cov",
+    "setuptools",
+]
+commands = [["pytest"]]

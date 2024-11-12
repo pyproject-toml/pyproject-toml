@@ -1,26 +1,34 @@
+from __future__ import annotations
+
 from collections import defaultdict
 from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Dict, List, Literal, Optional, Union
 
 import setuptools
-import toml
-from jsonschema import validate
+from pydantic import BaseModel
 
-from . import build_system, project, tool
+from .build_system import BuildSystemMetadata
+from .project import ProjectMetadata
+from .utils import to_hyphen
 
-if TYPE_CHECKING:
-    from typing import Dict, Literal
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
-SCHEMA = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "build-system": build_system.__schema__,
-        "project": project.__schema__,
-        "tool": tool.__schema__,
-    },
-}
+
+class ToolPyProjectToml(BaseModel):
+    packages: List[str]
+
+
+class PyProjectToml(BaseModel, alias_generator=to_hyphen):
+    project: Optional[ProjectMetadata] = None
+    build_system: Optional[BuildSystemMetadata] = None
+    tool: Union[
+        Dict[str, Dict], Dict[Literal["pyproject-toml"], ToolPyProjectToml]
+    ] = {}
+
 
 README_CONTENT_TYPES = {
     ".md": "text/markdown",
@@ -30,7 +38,7 @@ README_CONTENT_TYPES = {
 }
 
 
-def format_author(author: "Dict[Literal['name', 'email'], str]"):
+def format_author(author: Dict[Literal["name", "email"], str]):
     if "email" in author:
         return (
             "{name} <{email}>".format(**author)
@@ -47,13 +55,15 @@ def format_author(author: "Dict[Literal['name', 'email'], str]"):
 def setup_decorator(origin_setup):
     @wraps(origin_setup)
     def new_setup(**attrs):
-        pyproject_toml = Path("pyproject.toml")
-        if pyproject_toml.exists():
-            pyproject = toml.loads(pyproject_toml.read_text(encoding="utf-8"))
-            validate(pyproject, SCHEMA)
-            for k, v in pyproject.get("project", {}).items():
+        if (pyproject_toml_path := Path("pyproject.toml")).exists():
+            pyproject_toml = tomllib.loads(
+                pyproject_toml_path.read_text(encoding="utf-8")
+            )
+            print(pyproject_toml)
+            pyproject_toml = PyProjectToml.model_validate(pyproject_toml)
+            for k, v in (pyproject_toml.project or {}).items():
                 attrs[k] = v
-            for k, v in pyproject.get("tool", {}).get("pyproject-toml", {}).items():
+            for k, v in pyproject_toml.tool.get("pyproject-toml", {}).items():
                 attrs[k] = v
         else:
             return origin_setup(**attrs)
@@ -72,7 +82,9 @@ def setup_decorator(origin_setup):
                         readme.suffix
                     ]
                 except KeyError:
-                    raise TypeError("Content type of {} is not supported".format(readme))
+                    raise TypeError(
+                        "Content type of {} is not supported".format(readme)
+                    )
                 attrs["long_description"] = readme.read_text(encoding="utf-8")
 
         if "requires-python" in attrs:
@@ -91,9 +103,12 @@ def setup_decorator(origin_setup):
                 attrs["license_file"] = license_["file"]
 
         authors = defaultdict(list)
-        for type_, people in ("author", attrs.pop("authors", [])), (
-            "maintainer",
-            attrs.pop("maintainers", []),
+        for type_, people in (
+            ("author", attrs.pop("authors", [])),
+            (
+                "maintainer",
+                attrs.pop("maintainers", []),
+            ),
         ):
             for person in people:
                 value, postfix = format_author(person)

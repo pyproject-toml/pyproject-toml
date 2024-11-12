@@ -1,11 +1,11 @@
 [build-system]
-requires = ["pyproject-toml>=0.0.12"]
+requires = ["pyproject-toml>=0.0.12", "pydantic>=2.9.2", "tomli>=2.1.0; python_version < '3.11'"]
 build-backend = "pyproject_toml.build_system.build_backend"
 backend-path = ["."]
 
 [project]
 name = "pyproject-toml"
-version = "0.0.12"
+version = "0.1.0"
 description = "Project intend to implement PEP 517, 518, 621, 631 and so on."
 readme = "README.rst"
 authors = [{ name = "Tang Ziya", email = "tcztzy@hotmail.com" }]
@@ -15,24 +15,39 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
 ]
+requires-python = ">= 3.9, < 3.14"
 dependencies = [
-    "setuptools >= 42",
-    "wheel",
-    "toml",
-    "jsonschema",
-    "typing-extensions; python_version < '3.8'",
+    "setuptools >= 75.4.0",
+    "wheel>=0.45.0",
+    "tomli>=2.1.0; python_version < '3.11'",
+    "pydantic>=2.9.2",
+    "packaging>=24.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "jaraco-path>=3.7.1",
+    "pre-commit>=4.0.1",
+    "pytest>=8.3.3",
+    "tox-uv>=1.16.0",
 ]
 
 [project.urls]
 homepage = "https://github.com/pyproject-toml/pyproject-toml"
 
 [tool.pyproject-toml]
-packages = ["pyproject_toml", "pyproject_toml.build_system", "pyproject_toml.tool"]
+packages = ["pyproject_toml", "pyproject_toml.build_system"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+extend-select = ["I"]
 
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{36,37,38,39,310}
+envlist = py{39,310,311,312,313}
 isolated_build = True
 [testenv]
 deps =

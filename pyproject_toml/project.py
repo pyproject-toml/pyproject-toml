@@ -8,6 +8,7 @@ import re
 from typing import Dict, List, Literal, Optional, Union
 
 from packaging.version import VERSION_PATTERN
+from packaging_classifiers import classifiers
 from pydantic import BaseModel, Field, FilePath, ValidationError, model_validator
 
 from .utils import to_hyphen
@@ -90,3 +91,7 @@ class ProjectMetadata(BaseModel, alias_generator=to_hyphen):
     def validate_license(self):
         if self.version is None and "version" not in self.dynamic:
             raise ValidationError("Field version is required")
+        if self.classifiers is not None:
+            for classifier in self.classifiers:
+                if classifier not in classifiers:
+                    raise ValidationError(f"Invalid classifier: {classifier}")

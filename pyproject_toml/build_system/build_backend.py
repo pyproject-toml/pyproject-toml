@@ -9,6 +9,9 @@ import tokenize
 import shutil
 import contextlib
 import tempfile
+import warnings
+from pathlib import Path
+from typing import Optional
 
 import setuptools
 import distutils
@@ -21,6 +24,7 @@ __all__ = [
     "prepare_metadata_for_build_wheel",
     "build_wheel",
     "build_sdist",
+    "build_editable",
     "SetupRequirementsError",
 ]
 
@@ -68,6 +72,13 @@ def no_install_setup_requires():
         setuptools._install_setup_requires = orig
 
 
+@contextlib.contextmanager
+def suppress_known_deprecation():
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', 'setup.py install is deprecated')
+        yield
+
+
 def _get_immediate_subdirectories(a_dir):
     return [
         name for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))
@@ -94,7 +105,7 @@ def _fix_config(config_settings):
     return config_settings
 
 
-class _BuildBackend(object):
+class _BuildBackend:
     def _get_build_requires(self, config_settings, requirements):
         config_settings = _fix_config(config_settings)
 
@@ -201,6 +212,33 @@ class _BuildBackend(object):
             ["sdist", "--formats", "gztar"], ".tar.gz", sdist_directory, config_settings
         )
 
+    def _get_dist_info_dir(self, metadata_directory: Optional[str]) -> Optional[str]:
+        if not metadata_directory:
+            return None
+        dist_info_candidates = list(Path(metadata_directory).glob("*.dist-info"))
+        assert len(dist_info_candidates) <= 1
+        return str(dist_info_candidates[0]) if dist_info_candidates else None
+
+    def build_editable(
+        self, wheel_directory, config_settings=None, metadata_directory=None
+    ):
+        # XXX can or should we hide our editable_wheel command normally?
+        info_dir = self._get_dist_info_dir(metadata_directory)
+        opts = ["--dist-info-dir", info_dir] if info_dir else []
+        cmd = ["editable_wheel", *opts]
+        with suppress_known_deprecation():
+            return self._build_with_temp_dir(
+                cmd, ".whl", wheel_directory, config_settings
+            )
+
+    def get_requires_for_build_editable(self, config_settings=None):
+        return self.get_requires_for_build_wheel(config_settings)
+
+    def prepare_metadata_for_build_editable(self, metadata_directory,
+                                            config_settings=None):
+        return self.prepare_metadata_for_build_wheel(
+            metadata_directory, config_settings
+        )
 
 # The primary backend
 _BACKEND = _BuildBackend()
@@ -210,3 +248,4 @@ get_requires_for_build_sdist = _BACKEND.get_requires_for_build_sdist
 prepare_metadata_for_build_wheel = _BACKEND.prepare_metadata_for_build_wheel
 build_wheel = _BACKEND.build_wheel
 build_sdist = _BACKEND.build_sdist
+build_editable = _BACKEND.build_editable

@@ -7,6 +7,7 @@ from __future__ import annotations
 import re
 from typing import Dict, List, Literal, Optional, Union
 
+from license_expression import ExpressionError, get_spdx_licensing
 from packaging.version import VERSION_PATTERN
 from packaging_classifiers import classifiers
 from pydantic import BaseModel, Field, FilePath, ValidationError, model_validator
@@ -55,7 +56,7 @@ class ProjectMetadata(BaseModel, alias_generator=to_hyphen):
     description: Optional[str] = None
     readme: Optional[ReadMe] = None
     requires_python: Optional[str] = None
-    license: Optional[Union[FilePath, File, Text]] = None
+    license: Optional[Union[FilePath, File, Text, str]] = None
     authors: List[Author] = []
     maintainers: List[Author] = []
     keywords: List[str] = []
@@ -88,10 +89,26 @@ class ProjectMetadata(BaseModel, alias_generator=to_hyphen):
     ] = []
 
     @model_validator(mode="after")
-    def validate_license(self):
+    def validate_version(self):
         if self.version is None and "version" not in self.dynamic:
             raise ValidationError("Field version is required")
+        return self
+
+    @model_validator(mode="after")
+    def validate_classifiers(self):
         if self.classifiers is not None:
             for classifier in self.classifiers:
                 if classifier not in classifiers:
                     raise ValidationError(f"Invalid classifier: {classifier}")
+        return self
+
+    @model_validator(mode="after")
+    def validate_license(self):
+        if isinstance(self.license, str):
+            try:
+                get_spdx_licensing().parse(self.license)
+            except ExpressionError:
+                raise ValidationError(
+                    f"Invalid SPDX license expression: {self.license}"
+                )
+        return self
